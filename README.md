@@ -1,107 +1,115 @@
 # Movie Recommendation System
 
-A content-based movie recommendation web app built with Streamlit. Choose a movie from the available dataset and the app displays five recommended titles with their posters.
+A Streamlit web application that recommends five movies similar to a selected title using a precomputed similarity matrix and displays their TMDB posters.
 
 **Live demo:** https://movie-recommendation-system-g4bshmbfoprsukqqcuzrpn.streamlit.app/
 
-## How it works
-
-1. The app loads the movie catalogue from `data/movie_list.pickle`.
-2. It loads a precomputed similarity matrix from `data/similarity.pickle`.
-3. After you select a movie and click **Show Recommendation**, it ranks titles using the selected movie's similarity scores.
-4. It displays the five recommended titles and retrieves their posters from The Movie Database (TMDB).
-
-The recommendation interface and runtime flow are implemented in `app.py`. The dataset is older, so movie availability and recommendations may not reflect recent releases.
-
 ## Features
 
-- Movie selection through a Streamlit dropdown.
-- Similarity-based recommendations for a selected title.
-- Five recommended movie titles per selection.
-- Movie poster retrieval through the TMDB API.
-- Web interface suitable for running locally or deploying with Streamlit.
+- Select a movie from the available catalogue.
+- Rank movies using the project's precomputed similarity matrix.
+- Display five recommended movie titles.
+- Retrieve poster images from The Movie Database (TMDB).
+- Support local credentials through `.env` and deployment credentials through Streamlit Secrets.
 
 ## Technology
 
-- **Python**
-- **Streamlit** — web interface
-- **Pandas** — movie catalogue and title lookup
-- **Pickle** — loading the precomputed catalogue and similarity data
-- **Requests** — TMDB API requests
-- **TMDB** — poster metadata and image URLs
+- Python
+- Streamlit
+- Requests
+- Pandas
+- python-dotenv
+- Pickle-based precomputed movie catalogue and similarity data
 
-The repository's existing project notes also identify NumPy, scikit-learn, NLTK, and Python's `ast` module in the project workflow. The current `app.py` imports Streamlit, Requests, and Pickle directly.
-
-## Project files
+## Project structure
 
 ```text
 Movie-Recommendation-System/
 ├── app.py
-├── data/
-│   ├── movie_list.pickle
-│   └── similarity.pickle
-└── README.md
+├── requirements.txt
+├── .env.example
+├── .gitignore
+└── data/
+    ├── movie_list.pickle
+    └── similarity.pickle
 ```
 
-The two data files are stored using Git LFS pointers. Make sure Git LFS is installed and the actual data files are downloaded before running the app.
+The data files are stored with Git LFS. Install Git LFS and run `git lfs pull` if the actual data objects were not downloaded during cloning.
 
-## Run locally
-
-### Prerequisites
-
-- Python 3.9 or a compatible Python version
-- Git
-- Git LFS, to retrieve the serialized data files
-- A TMDB API credential configured securely for poster requests
+## Setup for local development
 
 ### 1. Clone the repository
 
 ```bash
 git clone https://github.com/rishitmathur2007-design/Movie-Recommendation-System.git
 cd Movie-Recommendation-System
-```
-
-If Git LFS is installed, pull the tracked data objects if they were not downloaded during cloning:
-
-```bash
 git lfs pull
 ```
 
-### 2. Install the runtime packages
+### 2. Create a virtual environment and install dependencies
 
-```bash
-python -m pip install streamlit requests pandas
+Windows PowerShell:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
 ```
 
-### 3. Configure TMDB access
+macOS/Linux:
 
-The current source contains a TMDB credential directly in `app.py`. Do not reuse or publish that credential. Revoke/rotate it in TMDB and update the application to read a replacement from an environment variable or Streamlit secrets before deploying or sharing the code. The app needs valid TMDB access to fetch posters.
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
 
-### 4. Start the app
+### 3. Configure TMDB credentials
+
+Copy `.env.example` to a new file named `.env`. Set **one** of the following variables using a newly issued TMDB credential:
+
+- `TMDB_ACCESS_TOKEN` — TMDB API Read Access Token (Bearer token).
+- `TMDB_API_KEY` — TMDB API key.
+
+Do not put real credentials in `.env.example`, source code, screenshots, issues, or commits. The `.env` file is ignored by Git.
+
+### 4. Run the application
 
 ```bash
 streamlit run app.py
 ```
 
-Streamlit will print a local URL in the terminal. Open it in your browser, choose a movie, and click **Show Recommendation**.
+Choose a movie and select **Show Recommendation**.
 
-## Known limitations
+## Streamlit deployment
 
-- The movie dataset is old and may not include newer titles.
-- Recommendations depend on the precomputed similarity matrix supplied with the project.
-- Poster retrieval depends on TMDB availability and valid credentials.
-- The repository does not currently include a `requirements.txt`; the install command above lists the packages directly imported by the app, not a verified complete environment lockfile.
-- The serialized pickle files must be downloaded correctly through Git LFS. Only load pickle files from sources you trust.
+In your Streamlit deployment's **Settings → Secrets**, add one of the following TOML entries:
 
-## Possible next improvements
+```toml
+TMDB_ACCESS_TOKEN = "paste-your-new-TMDB-read-access-token-here"
+```
 
-- Move API credentials to Streamlit secrets or environment variables.
-- Add a `requirements.txt` with tested dependency versions.
-- Handle missing movie titles, absent poster paths, and API/network errors gracefully.
-- Refresh the dataset and regenerate the similarity matrix.
-- Add screenshots and automated checks for the recommendation flow.
+Or, if using an API key instead:
+
+```toml
+TMDB_API_KEY = "paste-your-new-TMDB-api-key-here"
+```
+
+Configure the secret in the deployment dashboard; do not commit `.streamlit/secrets.toml`. The app supports Streamlit Secrets first and falls back to environment variables loaded from `.env` for local development.
+
+## Security notice
+
+Credentials were previously embedded in `app.py`. Treat those credentials as exposed: revoke or rotate them in your TMDB account and use replacement credentials in local and deployment configuration. Removing credentials from the current source does not remove them from prior Git commits. Review the repository's history and follow GitHub's sensitive-data removal guidance if you need to purge the old values from history.
+
+GitHub guidance: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository
+
+## Limitations
+
+- Recommendations depend on the supplied, precomputed similarity matrix and movie dataset.
+- Poster retrieval requires valid TMDB credentials and network access.
+- Some movies may not have poster images available.
+- The app loads pickle files; only use data files from a trusted source.
 
 ## Author
 
-**Rishit Mathur**  
-GitHub: [@rishitmathur2007-design](https://github.com/rishitmathur2007-design)
+Rishit Mathur — https://github.com/rishitmathur2007-design
