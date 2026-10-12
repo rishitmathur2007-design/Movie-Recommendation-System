@@ -36,16 +36,18 @@ def get_tmdb_credentials():
     if api_key:
         return {}, {"api_key": api_key}
 
-    raise RuntimeError(
-        "TMDB credentials are missing. Add TMDB_ACCESS_TOKEN or TMDB_API_KEY "
-        "to your local .env file or Streamlit Secrets."
-    )
+    # Recommendations should still work when TMDB is not configured.
+    # In that case, display titles and mark posters as unavailable.
+    return None, None
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
 def fetch_poster(movie_id):
     """Fetch a poster URL; return None when the movie has no poster."""
     headers, params = get_tmdb_credentials()
+    if headers is None and params is None:
+        return None
+
     params = {**params, "language": "en-US"}
 
     response = requests.get(
