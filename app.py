@@ -8,6 +8,9 @@ from dotenv import load_dotenv
 
 # Load local environment variables. Streamlit deployment can use st.secrets.
 load_dotenv()
+st.set_page_config(
+    page_title="Movie Recommendation System", page_icon="🎬", layout="wide"
+)
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
@@ -92,10 +95,15 @@ def load_movie_data():
 
 def recommend(movie, movie_data, similarity_data):
     """Return up to five similar movie titles and their poster URLs."""
-    matching_rows = movie_data.index[movie_data["title"] == movie].tolist()
+    matching_rows = [
+        position
+        for position, title in enumerate(movie_data["title"].tolist())
+        if title == movie
+    ]
     if not matching_rows:
         return []
 
+    # Similarity rows align with the DataFrame row positions, not index labels.
     index = matching_rows[0]
     ranked_movies = sorted(
         enumerate(similarity_data[index]),
@@ -122,7 +130,6 @@ def recommend(movie, movie_data, similarity_data):
     return recommendations
 
 
-st.set_page_config(page_title="Movie Recommendation System", page_icon="🎬", layout="wide")
 st.title("🎬 Movie Recommendation System")
 st.write("Choose a movie to discover five similar titles.")
 
@@ -152,6 +159,11 @@ if st.button("Show Recommendations", type="primary"):
     if not recommendations:
         st.info("No recommendations were found for this movie.")
     else:
+        if all(poster_url is None for _, poster_url in recommendations):
+            st.warning(
+                "Recommendations loaded, but posters could not be retrieved. "
+                "Check your TMDB credentials and network connection."
+            )
         columns = st.columns(len(recommendations))
         for column, (title, poster_url) in zip(columns, recommendations):
             with column:
